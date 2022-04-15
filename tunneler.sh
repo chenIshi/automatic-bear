@@ -16,9 +16,9 @@ failure_anomlies_threshold=20
 declare -i connection_retrial_times
 connection_maximum_failure=20
 
-# reset(kill) old reverse SSH sessions
+# reset(kill) old reverse SSH sessions (excluded the "grepping" process)
 # TODO: only reset specific reverse SSH sessions created by this script
-kill $(ps aux | grep 'ssh -fCNR' | awk '{print $2}')
+kill $(ps aux | grep 'ssh -fCNR' | grep -v 'grep'| awk '{print $2}')
 
 # init reverse SSH sessions
 for dest in $(seq 0 $((${tunneler_dest_size}-1)))

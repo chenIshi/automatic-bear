@@ -1,4 +1,4 @@
-# automatic-bear
+# Self-winder
 A simple script to automatically maintain a reverse SSH tunnel, re-establishing the SSH connection if failed.
 
 ## Motivation
