@@ -27,6 +27,8 @@ for dest in $(seq 0 $((${tunneler_dest_size}-1)))
 do 
   ssh -fCNR ${tunneler_public_address}:${tunneler_fwd_ports[$dest]}:localhost:22 root@${tunneler_public_address} -o ServerAliveInterval=60 & 
   # record the tunneler pid for latter liveness check
+  # Important!! Sleeping here is necessary since the pid remains incorrect a short time after init
+  sleep 5
   tunneler_pids[${dest}]=$(get-ssh-pid)
 done 
 
@@ -57,6 +59,8 @@ do
         then
           ssh -fCNR ${tunneler_public_address}:${tunneler_fwd_ports[$idx]}:localhost:22 root@${tunneler_public_address} -o ServerAliveInterval=60 & 
           # record the tunneler pid for latter liveness check
+          # Important! Don't remove the sleep here
+          sleep 5
           tunneler_pids[${idx}]=$(get-ssh-pid)
           tunneler_failure_times=0
           connection_retrial_times+=1
