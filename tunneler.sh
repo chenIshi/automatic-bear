@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # configure
-probe_timeout_in_second=300
+probe_timeout_in_second=60
 tunneler_public_address="101.201.234.77"
 tunneler_fwd_ports=(1234 1237)
 tunneler_dest_size=${#tunneler_fwd_ports[@]}
@@ -16,16 +16,18 @@ failure_anomlies_threshold=20
 declare -i connection_retrial_times
 connection_maximum_failure=20
 
+alias get-ssh-pid="ps aux | grep 'ssh -fCNR' | grep -v 'grep'| awk '{print \$2}'"
+
 # reset(kill) old reverse SSH sessions (excluded the "grepping" process)
 # TODO: only reset specific reverse SSH sessions created by this script
-kill $(ps aux | grep 'ssh -fCNR' | grep -v 'grep'| awk '{print $2}')
+kill $(get-ssh-pid)
 
 # init reverse SSH sessions
 for dest in $(seq 0 $((${tunneler_dest_size}-1)))
 do 
   ssh -fCNR ${tunneler_public_address}:${tunneler_fwd_ports[$dest]}:localhost:22 root@${tunneler_public_address} -o ServerAliveInterval=60 & 
   # record the tunneler pid for latter liveness check
-  tunneler_pids[${dest}]=$!
+  tunneler_pids[${dest}]=$(get-ssh-pid)
 done 
 
 while true
@@ -55,7 +57,7 @@ do
         then
           ssh -fCNR ${tunneler_public_address}:${tunneler_fwd_ports[$idx]}:localhost:22 root@${tunneler_public_address} -o ServerAliveInterval=60 & 
           # record the tunneler pid for latter liveness check
-          tunneler_pids[${idx}]=$!
+          tunneler_pids[${idx}]=$(get-ssh-pid)
           tunneler_failure_times=0
           connection_retrial_times+=1
         else
